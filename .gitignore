@@ -23,3 +23,10 @@ Database/out/events_*.csv
 # npm/yarn logs
 npm-debug.log*
 yarn-error.log*
+
+# Image crops made while reading book screenshots (working artifacts)
+Table*/t6_*.png
+Table*/rows[0-9].png
+Table*/colhdr.png
+Table*/header.png
+Table*/zoom.png
