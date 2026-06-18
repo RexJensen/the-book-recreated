@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# macOS
+.DS_Store
+
+# Vercel
+.vercel/
+
+# Local Claude settings
+.claude/settings.local.json
+
+# Retrosheet raw event files (~500 MB) — regenerable via Database/build_all.sh
+Database/raw/
+
+# Large intermediate CSVs (~550 MB) — regenerable; deleted after each build
+Database/out/events_*.csv
+
+# npm/yarn logs
+npm-debug.log*
+yarn-error.log*
