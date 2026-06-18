@@ -59,6 +59,7 @@ can be deleted if you want to declutter.
 | **Table 1** | `/table-1` | Run expectancy for the 24 base/out states. |
 | **Tables 2, 3 & 4** | `/run-value` | One sortable table per event type: N, runs to end of inning, **Average** (Table 2), **Starting RE** (Table 3), and **Run Value = Average − Starting RE** (Table 4). |
 | **Table 5** | `/state-run-value` | Pick one event type (defaults to HR) and see its N, runs to end of inning, **Average**, **Starting RE**, and **Run Value** broken out across all 24 base/out states. The inverse cut of Tables 2–4: one event, all states (vs. one row per event, aggregated over states). |
+| **Table 6** | `/hr-run-value` | Run value of the HR by base/out state via the **RE-transition** method: `Run Value = Ending RE − Starting RE`, where Ending RE = the bases-empty (same outs) RE the HR leaves you in **plus** the runs scored on the play (`#runners + 1`). Contrasts with the **Original** column (Table 5's empirical runs-to-end-of-inning run value). Deterministic for the HR, so it sidesteps small-sample noise — needs only the Table 1 matrix + HR counts. |
 
 Seasons loaded: **1980–2025** (46 seasons, ~8.1M events). Every page recomputes
 live for whatever **Seasons / League / Teams** you select in the sidebar, and the

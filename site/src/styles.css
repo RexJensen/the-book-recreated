@@ -142,9 +142,9 @@ td.delta.neg { color: #b3402f; }
 table.t3 td, table.t3 th { padding: 7px 9px; font-size: 14px; }
 
 /* ===================== Table 5 (event by base/out state) ===================== */
-table.t5 th.b { text-align: center; }
-table.t5 td.b { text-align: center; }
-table.t5 tr.group-end td { border-bottom: 2px solid #b8b2a4; }
+table.t5 th.b, table.t6 th.b { text-align: center; }
+table.t5 td.b, table.t6 td.b { text-align: center; }
+table.t5 tr.group-end td, table.t6 tr.group-end td { border-bottom: 2px solid #b8b2a4; }
 .toggle select {
   font-family: system-ui, sans-serif; font-size: 13px; padding: 4px 8px;
   border: 1px solid #cfcabf; border-radius: 5px; background: #fff; color: var(--ink); cursor: pointer;

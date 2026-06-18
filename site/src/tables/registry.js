@@ -1,6 +1,7 @@
 import Table1 from './Table1.jsx'
 import Table2to4 from './Table2to4.jsx'
 import Table5 from './Table5.jsx'
+import Table6 from './Table6.jsx'
 
 // Add a new table here and it appears in the nav + on the home page automatically.
 export const TABLES = [
@@ -27,5 +28,13 @@ export const TABLES = [
     blurb:
       'Pick an event (home run, single, strikeout…) and see its runs to the end of the inning, starting run expectancy, and run value broken out across all 24 base/out states.',
     Component: Table5,
+  },
+  {
+    path: 'hr-run-value',
+    num: '6',
+    title: 'Run Value of the Home Run, by Base/Out State',
+    blurb:
+      "A second, cleaner way to value the home run: compare the run expectancy of the state it started in with the state it ended in (plus runs scored), instead of averaging actual runs to the end of the inning. Sidesteps the small-sample noise of the empirical method.",
+    Component: Table6,
   },
 ]
