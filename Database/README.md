@@ -1,87 +1,81 @@
-# Database — Retrosheet play-by-play & run expectancy
+# Database — Retrosheet Play-By-Play & Run Expectancy
 
-This folder downloads historic MLB play-by-play data from **Retrosheet** and
-computes run expectancy from it. It's the data foundation for the rest of the
-*The Book* recreation.
+This folder holds the data side of *The Book, Recreated*.
 
-## A note on the "Retrosheet API"
+The source of truth for non-frontend code is now:
 
-Retrosheet does **not** publish a REST API. It distributes one ZIP of
-play-by-play *event files* per season at
-`https://www.retrosheet.org/events/<YEAR>eve.zip`. Each ZIP contains one
-`.EVA` (American League home games) or `.EVN` (National League home games)
-file per team, in Retrosheet's compact event format. We parse those with
-**Chadwick** (`cwevent`), the standard open-source Retrosheet toolkit.
-
-## What's here
-
-```
-raw/<year>/            extracted Retrosheet event + roster files (per season)
-out/events_<year>.csv  flat play-by-play, one row per event (from cwevent)
-out/team_league_all.csv team -> league map per season (derived from .EVA/.EVN)
-out/re_matrix_<year>.csv human-readable 8x3 run-expectancy matrix per season
-out/re_dataset.json    compact additive aggregates consumed by the React app
-scripts/run_expectancy.py  the computation
+```text
+Database/retrosheet_pipeline.ipynb
 ```
 
-Seasons currently loaded: **2021–2025**.
+That notebook is both a walkthrough and the executable pipeline. It explains the
+Retrosheet inputs, shows the aggregation steps, renders inline sanity-check
+charts from the generated JSON, writes datasets to `Database/out/`, and copies
+the site-facing JSON files into `site/src/data/`.
 
-## How to reproduce from scratch
+## Dependencies
 
-```bash
-# 1. install the Chadwick parser (one time)
-brew install chadwick
+- Chadwick: `brew install chadwick` for `cwevent`
+- Python 3
+- Notebook walkthrough libraries:
 
-# 2. download + extract a season (example: 2025)
-mkdir -p raw/2025 && cd raw/2025
-curl -O https://www.retrosheet.org/events/2025eve.zip
-unzip -o 2025eve.zip && cd ../..
+  ```bash
+  python3 -m pip install --user "matplotlib<3.8" pandas ipywidgets
+  ```
 
-# 3. convert events to CSV (field numbers come from `cwevent -d`)
-cwevent -y 2025 -f 0,1,2,3,4,8,9,26,27,28,35,40,58,59,60,61 \
-  raw/2025/2025*.EVA raw/2025/2025*.EVN > out/events_2025.csv   # add a header row
+- A Jupyter-capable editor or notebook runner
 
-# 4. compute the run-expectancy matrices + JSON dataset
-python3 scripts/run_expectancy.py
+## Use The Notebook
+
+For quick exploration, open `Database/retrosheet_pipeline.ipynb` and run all
+cells with:
+
+```python
+RUN_PIPELINE = False
 ```
 
-(The header row and the team→league map are added by the same loop used to
-build the current files; see the project history.)
+This loads the existing JSON in `Database/out/` and renders the walkthrough
+tables and charts under the cells.
 
-## How run expectancy is calculated
+To rebuild data:
 
-The standard Retrosheet recipe (Marchi & Albert, *Analyzing Baseball Data with
-R*):
+1. Open `Database/retrosheet_pipeline.ipynb`.
+2. Confirm `START_YEAR`, `END_YEAR`, and the other configuration values in the
+   first code cell.
+3. In the rebuild cell, set:
 
-1. For every play, record the **base/out state at the start** of the play and
-   the runs already scored in the game.
-2. Per half-inning, `runs to end of inning = (runs at inning start + runs
-   scored in the whole inning) − runs already scored before this play`.
-3. Keep only innings that ended with **exactly 3 outs** — this drops walk-off
-   and game-ending partial innings that would otherwise bias the late-inning,
-   runners-on states downward.
-4. **Run expectancy of a state** = the mean of "runs to end of inning" over
-   every *plate appearance* that began in that state.
+   ```python
+   RUN_PIPELINE = True
+   ```
 
-Because the JSON stores `count` and `sumRuns` per (season, team, state), the
-numbers are **additive**: the React app sums any selection of seasons/leagues/
-teams and divides to get that selection's matrix — no recomputation needed.
+4. Run all cells.
 
-## Results (sanity check)
+The notebook reuses existing `raw/<year>/` Retrosheet downloads unless
+`FORCE_DOWNLOAD` is `True`. It regenerates intermediate `out/events_<year>.csv`
+files by default, computes the JSON outputs, syncs `re_dataset.json` and
+`event_states.json` to the React site, and then removes the intermediate event
+CSVs when `REMOVE_INTERMEDIATE_EVENTS` is `True`.
 
-Overall run expectancy = the bases-empty / 0-out value, which equals the
-average runs scored per inning:
+## Outputs
 
-| Season | Overall RE (empty, 0 out) |
-|-------:|--------------------------:|
-| 2021 | 0.505 |
-| 2022 | 0.473 |
-| 2023 | 0.513 |
-| 2024 | 0.484 |
-| 2025 | 0.495 |
+```text
+raw/<year>/                 extracted Retrosheet event + roster files
+out/team_league_all.csv     team → league map per season
+out/re_matrix_<year>.csv    human-readable Table 1 matrix per season
+out/re_by_event_<year>.csv  human-readable Table 2 event table per season
+out/re_dataset.json         additive Table 1 dataset for the site
+out/event_dataset.json      standalone additive Table 2 dataset
+out/event_states.json       event/state dataset for Tables 2-6 on the site
+```
 
-These are sensibly lower than the **0.555** in *The Book*'s Table 1 (1999–2002),
-a much higher-offense era, and they track the real run environment year to year
-(2022 was a notably low-offense season; scoring ticked up in 2023 after the rule
-changes). The full 24-state matrices are monotonic exactly as expected — more
-runners and fewer outs always raise the expectancy.
+## Adding A Table
+
+Add the data computation to `retrosheet_pipeline.ipynb`, write the generated
+dataset to `Database/out/`, and add at least one notebook visualization or
+summary table so the numbers can be inspected before touching React. Copy any
+site-consumed JSON into `site/src/data/`. Then add the React table under
+`site/src/tables/` and register it in `site/src/tables/registry.js`.
+
+Keep the notebook as the only backend/data implementation. Avoid adding new
+standalone `.py` or `.sh` pipeline files unless the project intentionally changes
+that convention.

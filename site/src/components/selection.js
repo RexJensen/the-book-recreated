@@ -1,22 +1,28 @@
 import { useMemo, useState } from 'react'
 import { teamName } from '../teams.js'
 
-// Build the canonical (team, league, label) list from a dataset's groups,
-// disambiguating display names shared by two codes (OAK vs ATH -> Athletics).
+const listCodes = (teams) => teams.flatMap((t) => t.codes)
+
+// Build a human-facing team list from Retrosheet team codes. Codes that map to
+// the same display name are grouped so relocated/renamed IDs do not show as
+// duplicate buttons.
 export function buildTeams(groups) {
-  const seen = new Map()
-  for (const g of groups) if (!seen.has(g.team)) seen.set(g.team, g.league)
-  const nameCount = {}
-  for (const code of seen.keys()) nameCount[teamName(code)] = (nameCount[teamName(code)] || 0) + 1
-  return [...seen.entries()]
-    .map(([team, league]) => ({
-      team,
-      league,
-      label: nameCount[teamName(team)] > 1 ? `${teamName(team)} (${team})` : teamName(team),
+  const byLabel = new Map()
+  for (const g of groups) {
+    const label = teamName(g.team)
+    if (!byLabel.has(label)) byLabel.set(label, { key: label, label, codes: new Set(), leagues: new Set() })
+    const item = byLabel.get(label)
+    item.codes.add(g.team)
+    item.leagues.add(g.league)
+  }
+
+  return [...byLabel.values()]
+    .map((t) => ({
+      ...t,
+      codes: [...t.codes].sort(),
+      leagues: [...t.leagues].sort(),
     }))
-    .sort((a, b) =>
-      a.league === b.league ? a.label.localeCompare(b.label) : a.league.localeCompare(b.league),
-    )
+    .sort((a, b) => a.label.localeCompare(b.label))
 }
 
 // Shared Seasons / League / Teams selection state, used by every table so the
@@ -24,12 +30,18 @@ export function buildTeams(groups) {
 export function useSelection(seasonList, teamList) {
   const [seasons, setSeasons] = useState(() => new Set(seasonList))
   const [league, setLeague] = useState('ALL') // ALL | AL | NL
-  const [teams, setTeams] = useState(() => new Set(teamList.map((t) => t.team)))
+  const [teams, setTeams] = useState(() => new Set(listCodes(teamList)))
 
   const visibleTeams = useMemo(
-    () => teamList.filter((t) => league === 'ALL' || t.league === league),
+    () => teamList.filter((t) => league === 'ALL' || t.leagues.includes(league)),
     [league, teamList],
   )
+
+  const setSeasonRange = (from, to) => {
+    const lo = Math.min(Number(from), Number(to))
+    const hi = Math.max(Number(from), Number(to))
+    setSeasons(new Set(seasonList.filter((s) => s >= lo && s <= hi)))
+  }
 
   const toggleSeason = (s) =>
     setSeasons((prev) => {
@@ -38,43 +50,67 @@ export function useSelection(seasonList, teamList) {
       return next.size ? next : prev // never allow zero seasons
     })
 
+  const selectAllSeasons = () => setSeasons(new Set(seasonList))
+  const selectBookSeasons = () => setSeasonRange(1999, 2002)
+  const latestSeason = seasonList[seasonList.length - 1]
+  const selectRecentSeasons = () => setSeasonRange(Math.max(seasonList[0], latestSeason - 9), latestSeason)
+
   const changeLeague = (lg) => {
     setLeague(lg)
-    setTeams(new Set(teamList.filter((t) => lg === 'ALL' || t.league === lg).map((t) => t.team)))
+    setTeams(new Set(listCodes(teamList.filter((t) => lg === 'ALL' || t.leagues.includes(lg)))))
   }
+
+  const teamSelected = (team) => team.codes.every((code) => teams.has(code))
+  const teamPartial = (team) => team.codes.some((code) => teams.has(code)) && !teamSelected(team)
 
   const toggleTeam = (team) =>
     setTeams((prev) => {
       const next = new Set(prev)
-      next.has(team) ? next.delete(team) : next.add(team)
+      const selected = team.codes.every((code) => next.has(code))
+      for (const code of team.codes) selected ? next.delete(code) : next.add(code)
       return next
     })
 
-  const selectAll = () => setTeams(new Set(visibleTeams.map((t) => t.team)))
+  const selectAll = () => setTeams(new Set(listCodes(visibleTeams)))
   const selectNone = () => setTeams(new Set())
 
-  const allVisibleSelected = visibleTeams.every((t) => teams.has(t.team))
+  const allVisibleSelected = visibleTeams.every(teamSelected)
+  const selectedVisibleTeams = visibleTeams.filter((t) => t.codes.some((code) => teams.has(code)))
+  const seasonValues = [...seasons].sort((a, b) => a - b)
+  const seasonStart = seasonValues[0]
+  const seasonEnd = seasonValues[seasonValues.length - 1]
+  const contiguousSeasonCount = seasonEnd - seasonStart + 1
 
   const seasonLabel =
     seasons.size === seasonList.length
       ? `${seasonList[0]}–${seasonList[seasonList.length - 1]}`
-      : [...seasons].sort().join(', ')
+      : seasons.size === contiguousSeasonCount
+        ? `${seasonStart}–${seasonEnd}`
+        : seasonValues.join(', ')
 
   const teamLabel = allVisibleSelected
     ? league === 'ALL'
       ? 'All Teams'
       : `All ${league}`
-    : `${teams.size} team${teams.size === 1 ? '' : 's'}`
+    : `${selectedVisibleTeams.length} team${selectedVisibleTeams.length === 1 ? '' : 's'}`
 
   return {
     seasonList,
     seasons,
+    seasonStart,
+    seasonEnd,
     league,
     teams,
     visibleTeams,
+    setSeasonRange,
     toggleSeason,
+    selectAllSeasons,
+    selectBookSeasons,
+    selectRecentSeasons,
     changeLeague,
     toggleTeam,
+    teamSelected,
+    teamPartial,
     selectAll,
     selectNone,
     seasonLabel,

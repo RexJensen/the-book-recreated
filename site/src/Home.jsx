@@ -3,6 +3,10 @@ import data from './data/re_dataset.json'
 import { TABLES } from './tables/registry.js'
 
 const seasons = data.meta.seasons
+const totalPlateAppearances = data.groups.reduce(
+  (sum, g) => sum + g.cells.reduce((cellSum, c) => cellSum + c.count, 0),
+  0,
+)
 
 export default function Home() {
   return (
@@ -20,8 +24,8 @@ export default function Home() {
 
       <p className="intro">
         Pick any combination of seasons, league and teams in the sidebar — every table recomputes
-        live from {(909557).toLocaleString()}+ plate appearances. The numbers run a touch below the
-        book's original 1999–2002 figures, reflecting today's lower-offense era.
+        live from {totalPlateAppearances.toLocaleString()} plate appearances. The numbers run a
+        touch below the book's original 1999–2002 figures, reflecting today's lower-offense era.
       </p>
 
       <div className="cards">
@@ -37,7 +41,8 @@ export default function Home() {
 
       <p className="src-note">
         Data: Retrosheet event files, parsed with Chadwick <code>cwevent</code> and aggregated
-        locally. Run expectancy = mean runs to the end of the inning, complete (3-out) innings only.
+        locally. Run expectancy = mean runs to the end of the inning, excluding partial innings
+        and home halves of the ninth or later.
       </p>
     </div>
   )

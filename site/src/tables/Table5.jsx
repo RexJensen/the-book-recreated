@@ -164,7 +164,8 @@ export default function Table5({ sel }) {
         <p>
           For every occurrence of the chosen event we record the base/out state it started in and the
           runs the batting team went on to score before the inning ended (complete 3-out innings
-          only). Each row averages those runs over the occurrences that started in that state.{' '}
+          only, excluding home halves of the ninth or later). Each row averages those runs over the
+          occurrences that started in that state.{' '}
           <strong>Starting RE</strong> comes from the Table&nbsp;1 matrix for the same selection, and{' '}
           <strong>Run Value</strong> is Average − Starting RE.
         </p>

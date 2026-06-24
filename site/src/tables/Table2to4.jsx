@@ -165,8 +165,9 @@ export default function Table2to4({ sel }) {
         <p>
           <strong>Average runs</strong> is the mean runs scored from each event to the end of the
           inning, over every occurrence (all events, not just plate appearances; complete 3-out
-          innings only). <strong>Starting RE</strong> looks up the run expectancy of each event's
-          starting base/out state in the Table&nbsp;1 matrix and averages it. <strong>Run
+          innings only, excluding home halves of the ninth or later). <strong>Starting RE</strong>{' '}
+          looks up the run expectancy of each event's starting base/out state in the Table&nbsp;1
+          matrix and averages it. <strong>Run
           Value</strong> is their difference.
         </p>
         <p>

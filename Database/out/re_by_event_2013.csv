@@ -1,24 +1,24 @@
 Event,code,N,Runs to End of Inning,Average Runs
-Home Run,HR,4577,8277.0,1.808
-Triple,3B,765,1105.0,1.444
-Double,2B,8163,9846.0,1.206
-Error,RBOE,1453,1402.0,0.965
-Passed Ball,PB,296,277.0,0.936
-Single,1B,28150,25303.0,0.899
-Fielder's Choice,FC,473,410.0,0.867
-Wild Pitch,WP,1564,1296.0,0.829
-Balk,BK,128,100.0,0.781
-Hit by Pitch,HBP,1527,1185.0,0.776
-Sac Bunt,SAC,1267,965.0,0.762
-Intentional Walk,IBB,955,697.0,0.730
-Non-Intentional Walk,NIBB,13495,9798.0,0.726
-Stolen Base,SB,2358,1607.0,0.682
+Home Run,HR,4482,8139.0,1.816
+Triple,3B,751,1083.0,1.442
+Double,2B,7955,9712.0,1.221
+Error,RBOE,1366,1318.0,0.965
+Passed Ball,PB,287,274.0,0.955
+Single,1B,26819,24421.0,0.911
+Wild Pitch,WP,1505,1276.0,0.848
+Fielder's Choice,FC,429,357.0,0.832
+Sac Bunt,SAC,1767,1443.0,0.817
+Hit by Pitch,HBP,1475,1171.0,0.794
+Intentional Walk,IBB,878,694.0,0.790
+Balk,BK,126,99.0,0.786
+Non-Intentional Walk,NIBB,13013,9671.0,0.743
+Stolen Base,SB,2291,1593.0,0.695
+Interference,INT,24,13.0,0.542
 Foul Error,FLE,39,21.0,0.538
-Interference,INT,25,13.0,0.520
-Pickoff,PK,493,184.0,0.373
-Defensive Indifference,DI,334,111.0,0.332
-Other,OTHER,66,21.0,0.318
-Bunt,BUNT,682,178.0,0.261
-Out (on Batted Ball),OUT,85759,16898.0,0.197
-Strikeout,K,36633,6274.0,0.171
-Caught Stealing,CS,698,93.0,0.133
+Bunt,BUNT,735,309.0,0.420
+Pickoff,PK,487,184.0,0.378
+Defensive Indifference,DI,164,60.0,0.366
+Other,OTHER,61,21.0,0.344
+Out (on Batted Ball),OUT,82586,16597.0,0.201
+Strikeout,K,34882,6073.0,0.174
+Caught Stealing,CS,686,93.0,0.136

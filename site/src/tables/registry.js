@@ -2,6 +2,7 @@ import Table1 from './Table1.jsx'
 import Table2to4 from './Table2to4.jsx'
 import Table5 from './Table5.jsx'
 import Table6 from './Table6.jsx'
+import Table7 from './Table7.jsx'
 
 // Add a new table here and it appears in the nav + on the home page automatically.
 export const TABLES = [
@@ -32,9 +33,17 @@ export const TABLES = [
   {
     path: 'hr-run-value',
     num: '6',
-    title: 'Run Value of the Home Run, by Base/Out State',
+    title: 'Transition Run Value, by Base/Out State',
     blurb:
-      "A second, cleaner way to value the home run: compare the run expectancy of the state it started in with the state it ended in (plus runs scored), instead of averaging actual runs to the end of the inning. Sidesteps the small-sample noise of the empirical method.",
+      "A second, cleaner way to value an event: compare the run expectancy of the state it started in with the state it ended in (plus runs scored), instead of averaging actual runs to the end of the inning. Defaults to the home run, matching the book's Table 6.",
     Component: Table6,
+  },
+  {
+    path: 'table-7',
+    num: '7',
+    title: 'Run Values By Event',
+    blurb:
+      "The Table 6 transition method applied to every event type, weighted by each event's observed start-to-end states to produce a single run value per event.",
+    Component: Table7,
   },
 ]

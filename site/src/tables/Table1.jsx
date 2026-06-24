@@ -86,8 +86,8 @@ export default function Table1({ sel }) {
         <p>
           For every plate appearance we record the base/out state at its start and the runs the
           batting team went on to score before the inning ended. The run expectancy of a state is
-          the average of those values over the selected seasons, leagues and teams. Only innings
-          that ended with three outs are counted.
+          the average of those values over the selected seasons, leagues and teams. Partial innings
+          and home halves of the ninth or later are excluded.
         </p>
         <p className="src">Source: {reMeta.source}.</p>
       </details>

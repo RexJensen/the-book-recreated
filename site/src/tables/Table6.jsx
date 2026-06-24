@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BASE_ORDER, OUTS, computeREMatrix } from '../components/reMatrix.js'
-import { matchesSelection } from '../components/selection.js'
+import {
+  computeTransitionStateRows,
+  eventChoices,
+  signed,
+} from './eventTransitions.js'
 
 const onFirst = (b) => b & 1
 const onSecond = (b) => b & 2
 const onThird = (b) => b & 4
-const runnersOn = (b) => (b & 1 ? 1 : 0) + (b & 2 ? 1 : 0) + (b & 4 ? 1 : 0)
-
-const signed = (v) => (v == null ? '—' : `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(3)}`)
-
 export default function Table6({ sel }) {
   const [stateData, setStateData] = useState(null)
+  const [event, setEvent] = useState('HR')
 
   useEffect(() => {
     let live = true
@@ -20,62 +21,45 @@ export default function Table6({ sel }) {
     }
   }, [])
 
+  const labels = useMemo(
+    () => (stateData ? Object.fromEntries(stateData.meta.categories) : {}),
+    [stateData],
+  )
+
+  const choices = useMemo(() => (stateData ? eventChoices(stateData) : []), [stateData])
+
   const { rows, totalN } = useMemo(() => {
     if (!stateData) return { rows: null, totalN: 0 }
     const { matrix } = computeREMatrix(sel)
+    return computeTransitionStateRows(stateData, sel, matrix, event, BASE_ORDER, OUTS)
+  }, [stateData, sel, event])
 
-    // accumulate HR [count, sumRuns to end of inning] per starting base/out state
-    const acc = {}
-    for (const o of OUTS) for (const b of BASE_ORDER) acc[b * 10 + o] = { count: 0, sumRuns: 0 }
-    for (const g of stateData.groups) {
-      if (!matchesSelection(g, sel)) continue
-      const e = g.events.HR
-      if (!e) continue
-      for (const sk in e.states) {
-        const [c, r] = e.states[sk]
-        if (!acc[sk]) acc[sk] = { count: 0, sumRuns: 0 }
-        acc[sk].count += c
-        acc[sk].sumRuns += r
-      }
-    }
-
-    const rows = []
-    let totalN = 0
-    for (const b of BASE_ORDER) {
-      for (const o of OUTS) {
-        const k = b * 10 + o
-        const { count, sumRuns } = acc[k]
-        const startRE = matrix[k]?.re ?? null
-        const emptyRE = matrix[o]?.re ?? null // bases empty, same outs — where a HR always leaves you
-        const runsScored = runnersOn(b) + 1 // every runner plus the batter scores
-        const endingRE = emptyRE != null ? emptyRE + runsScored : null
-        const avgROI = count ? sumRuns / count : null
-        // "Original": the empirical run value (Table 5) — avg runs to end of inning minus starting RE
-        const original = avgROI != null && startRE != null ? avgROI - startRE : null
-        // RE-transition run value: ending run value minus starting RE
-        const runValue = endingRE != null && startRE != null ? endingRE - startRE : null
-        totalN += count
-        rows.push({ base: b, outs: o, count, runsScored, original, startRE, endingRE, runValue })
-      }
-    }
-    return { rows, totalN }
-  }, [stateData, sel])
+  const label = labels[event] || event
 
   return (
     <>
       <header className="table-head">
-        <h1>Run Value of the Home Run, by Base/Out State</h1>
+        <h1>Transition Run Value, by Base/Out State</h1>
         <p className="subtitle">
           {sel.seasonLabel} &nbsp;&middot;&nbsp; {sel.teamLabel}
         </p>
         <p className="credit">
-          Table&nbsp;6 from Tom Tango's <em>The Book</em> &mdash; a second, cleaner way to value the
-          home run. Instead of averaging the actual runs scored to the end of the inning (which is
-          noisy in small samples), compare the run expectancy of the state the HR{' '}
-          <strong>started</strong> in with the state it <strong>ended</strong> in, and add the runs
-          that scored on the play.
+          Table&nbsp;6 from Tom Tango's <em>The Book</em>, generalized. Pick an event and compare the
+          run expectancy of the state it <strong>started</strong> in with the state it{' '}
+          <strong>ended</strong> in, adding the runs that scored on the play.
         </p>
       </header>
+
+      <label className="toggle">
+        Event:&nbsp;
+        <select value={event} onChange={(e) => setEvent(e.target.value)}>
+          {choices.map((c) => (
+            <option key={c} value={c}>
+              {labels[c] || c}
+            </option>
+          ))}
+        </select>
+      </label>
 
       {rows == null ? (
         <div className="empty">Loading event data…</div>
@@ -88,10 +72,10 @@ export default function Table6({ sel }) {
                 <th className="b">2B</th>
                 <th className="b">3B</th>
                 <th className="num">Outs</th>
-                <th className="num">HR</th>
+                <th className="num">N</th>
                 <th className="num">Original</th>
                 <th className="num start">Starting RE</th>
-                <th className="num start">Ending RE</th>
+                <th className="num start">Ending Value</th>
                 <th className="num delta">Run Value</th>
               </tr>
             </thead>
@@ -107,8 +91,8 @@ export default function Table6({ sel }) {
                     {signed(r.original)}
                   </td>
                   <td className="num start">{r.startRE != null ? r.startRE.toFixed(3) : '—'}</td>
-                  <td className="num start" title={`bases-empty RE (${r.outs} out) + ${r.runsScored} run${r.runsScored === 1 ? '' : 's'} scored`}>
-                    {r.endingRE != null ? r.endingRE.toFixed(3) : '—'}
+                  <td className="num start">
+                    {r.ending != null ? r.ending.toFixed(3) : '—'}
                   </td>
                   <td className={`num delta ${r.runValue == null ? '' : r.runValue >= 0 ? 'pos' : 'neg'}`}>
                     {signed(r.runValue)}
@@ -118,16 +102,14 @@ export default function Table6({ sel }) {
             </tbody>
           </table>
           <p className="hint">
-            {totalN.toLocaleString()} home runs. <strong>Run Value</strong> = Ending RE − Starting RE,
-            where <strong>Ending RE</strong> is the run expectancy of the bases-empty state the HR
-            leaves you in <em>plus</em> the runs that scored on the play. <strong>Original</strong> is
-            the empirical run value from Table&nbsp;5 (average runs to the end of the inning minus
-            Starting RE). The two should agree; where they diverge it's mostly small-sample noise in
-            the empirical figure. Everything recomputes for the seasons, league and teams you pick.
+            {totalN.toLocaleString()} {label} events. <strong>Run Value</strong> = Ending Value −
+            Starting RE, where <strong>Ending Value</strong> is runs scored on the play plus the run
+            expectancy of the post-play base/out state. <strong>Original</strong> is the empirical
+            Table&nbsp;5 run value. Everything recomputes for the seasons, league and teams you pick.
           </p>
         </>
       ) : (
-        <div className="empty">No home runs for this selection.</div>
+        <div className="empty">No {label} events for this selection.</div>
       )}
 
       <details className="method">
@@ -140,10 +122,9 @@ export default function Table6({ sel }) {
           between the ending and starting values &mdash; here, exactly one run.
         </p>
         <p>
-          Because a home run always clears the bases, its ending state and runs scored are fully
-          determined by the starting state, so this method needs no play-by-play averaging &mdash;
-          just the Table&nbsp;1 run-expectancy matrix. That's what makes it cleaner than the
-          runs-to-end-of-inning approach for an event seen only a handful of times in a given state.
+          For other events, the site weights every observed start-to-end transition for the selected
+          event. Third-out transitions have no remaining run expectancy, so their ending value is
+          just the runs scored on the play.
         </p>
         <p className="src">Source: {stateData ? stateData.meta.source : ''}.</p>
       </details>

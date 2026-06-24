@@ -16,11 +16,7 @@ Dolphin's _The Book: Playing the Percentages in Baseball_**, computed from real
 Tango_book_recreation/
 ├── CLAUDE.md / AGENTS.md      ← this file (AGENTS.md is an exact copy)
 ├── Database/                  ← data pipeline: Retrosheet → run expectancy
-│   ├── build_all.sh           ← one command to (re)build everything
-│   ├── scripts/
-│   │   ├── run_expectancy.py        → out/re_dataset.json      (Table 1)
-│   │   ├── runs_by_event.py         → out/event_dataset.json   (Table 2, standalone)
-│   │   └── event_starting_state.py  → out/event_states.json    (Tables 2–4 on the site)
+│   ├── retrosheet_pipeline.ipynb    ← THE data/back-end source of truth
 │   ├── raw/<year>/            ← extracted Retrosheet event files (.EVA/.EVN/.ROS)
 │   └── out/                   ← generated CSVs + JSON datasets
 ├── site/                      ← THE DEPLOYED APP (Vite + React + React Router)
@@ -41,14 +37,15 @@ Tango_book_recreation/
 │   │   ├── teams.js           ← Retrosheet team code → display name map
 │   │   └── styles.css
 │   └── vercel.json            ← SPA rewrite so deep links work
-├── Table1-RunExpectancy-by-BaseOutState/   ← LEGACY standalone app (superseded by site/)
-├── Table2-RunsToEndOfInning-ByEvent/       ← LEGACY standalone app (superseded by site/)
+├── Table1-RunExpectancy-by-BaseOutState/   ← reference screenshot/material only
+├── Table2-RunsToEndOfInning-ByEvent/       ← reference screenshots/material only
 ├── Table3/  Table4/                        ← reference screenshots from the book
 ```
 
-The `Table1-…/app` and `Table2-…/app` folders are early standalone versions kept
-as sandboxes. **`site/` is the single source of truth for what's deployed.** They
-can be deleted if you want to declutter.
+**`site/` is the single source of truth for frontend code.**
+**`Database/retrosheet_pipeline.ipynb` is the single source of truth for
+non-frontend/data code.** The table-numbered folders outside `site/` are only
+reference material from the book and early reconstruction work.
 
 ---
 
@@ -82,23 +79,29 @@ Retrosheet toolkit.
 
 ### Dependencies
 - **Chadwick** — `brew install chadwick` (provides `cwevent`, `cwgame`).
-- **Python 3** — standard library only (no pip packages needed for the pipeline).
+- **Python 3**.
+- **Notebook walkthrough libraries** —
+  `python3 -m pip install --user "matplotlib<3.8" pandas ipywidgets`.
+- **Jupyter-capable editor/runner** — the data pipeline lives in a notebook.
 - **Node 20+ / npm** — for the site.
 
 ### Rebuild everything
-```bash
-cd Database
-bash build_all.sh 1980 2025      # downloads (if missing), converts, aggregates
-```
-This downloads/extracts each season into `raw/<year>/`, converts the events to
-`out/events_<year>.csv` with `cwevent`, then runs the three Python aggregators.
-Re-running is safe — existing downloads are reused. To add a year, just widen the
-range (e.g. `bash build_all.sh 1979 2025`).
+Open `Database/retrosheet_pipeline.ipynb`, confirm `START_YEAR` / `END_YEAR`,
+set `RUN_PIPELINE = True` in the final cell, and run the notebook. It
+downloads/extracts each season into `raw/<year>/`, converts the events to
+`out/events_<year>.csv` with `cwevent`, computes the additive JSON datasets, and
+copies the site-facing JSON into `site/src/data/`. Re-running is safe — existing
+downloads are reused unless `FORCE_DOWNLOAD = True`. To add a year, widen the
+range in the notebook.
+
+For quick exploration, leave `RUN_PIPELINE = False` and run all cells. The
+notebook loads the existing JSON in `Database/out/` and renders walkthrough
+tables/charts under the relevant cells.
 
 > **Disk note:** the intermediate `out/events_*.csv` files are large (~550 MB for
 > 46 seasons) and are deleted after a build to save space. They are fully
-> regenerable by re-running `build_all.sh` (which re-runs `cwevent` over `raw/`).
-> `raw/` is ~500 MB; delete it to reclaim space — `build_all.sh` re-downloads.
+> regenerable by re-running the notebook (which re-runs `cwevent` over `raw/`).
+> `raw/` is ~500 MB; delete it to reclaim space — the notebook re-downloads it.
 
 ### How run expectancy is computed
 The standard Retrosheet recipe (Marchi & Albert, _Analyzing Baseball Data with R_):
@@ -160,8 +163,8 @@ npm run dev                            # http://localhost:5173 (or as assigned)
   all paths to `index.html` so deep links work.
 
 ### Add a new table
-1. Compute its data in `Database/` (extend a script or add one) → JSON in
-   `Database/out/`, then copy into `site/src/data/`.
+1. Compute its data in `Database/retrosheet_pipeline.ipynb` → JSON in
+   `Database/out/`, then copy any site-consumed dataset into `site/src/data/`.
 2. Create `site/src/tables/TableN.jsx` — a component taking `{ sel }`, using
    `computeREMatrix(sel)` and/or `matchesSelection(g, sel)` to aggregate.
    Dynamically `import()` any large (>1 MB) dataset so it only loads on that page.
@@ -170,9 +173,16 @@ npm run dev                            # http://localhost:5173 (or as assigned)
 4. `npm run build` to check, then deploy.
 
 ### After regenerating data, refresh the site copies
-```bash
-cp Database/out/re_dataset.json Database/out/event_states.json site/src/data/
-```
+The notebook does this automatically when `COPY_TO_SITE = True` by copying
+`Database/out/re_dataset.json` and `Database/out/event_states.json` into
+`site/src/data/`.
+
+### Data-code convention
+Keep non-frontend pipeline logic in `Database/retrosheet_pipeline.ipynb`. Do not
+add new standalone `.py` or `.sh` pipeline files unless the project intentionally
+changes that convention. When additions are made, update the notebook first and
+include at least one notebook table/chart that explains or validates the new
+numbers, then update the site to consume the generated data.
 
 ---
 
