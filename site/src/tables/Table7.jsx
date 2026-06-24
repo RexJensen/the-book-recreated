@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { loadEventStates } from '../data/eventStates.js'
 import { computeREMatrix } from '../components/reMatrix.js'
 import {
   BOOK_EVENT_ORDER,
@@ -21,7 +22,7 @@ export default function Table7({ sel }) {
 
   useEffect(() => {
     let live = true
-    import('../data/event_states.json').then((m) => live && setStateData(m.default))
+    loadEventStates().then((d) => live && setStateData(d))
     return () => {
       live = false
     }

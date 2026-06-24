@@ -1,0 +1,24 @@
+Event,code,N,Runs to End of Inning,Average Runs
+Home Run,HR,2186,3973.0,1.817
+Triple,3B,756,1107.0,1.464
+Double,2B,3925,4661.0,1.188
+Balk,BK,101,108.0,1.069
+Wild Pitch,WP,914,855.0,0.935
+Error,RBOE,1425,1293.0,0.907
+Passed Ball,PB,280,250.0,0.893
+Single,1B,18125,15815.0,0.873
+Sac Bunt,SAC,1626,1376.0,0.846
+Interference,INT,11,9.0,0.818
+Intentional Walk,IBB,1142,891.0,0.780
+Fielder's Choice,FC,404,305.0,0.755
+Hit by Pitch,HBP,719,509.0,0.708
+Non-Intentional Walk,NIBB,8022,5623.0,0.701
+Stolen Base,SB,1282,859.0,0.670
+Bunt,BUNT,225,131.0,0.582
+Foul Error,FLE,56,31.0,0.554
+Pickoff,PK,290,107.0,0.369
+Other,OTHER,69,24.0,0.348
+Out (on Batted Ball),OUT,59187,10688.0,0.181
+Strikeout,K,18537,3046.0,0.164
+Caught Stealing,CS,750,57.0,0.076
+Defensive Indifference,DI,2,0.0,0.000

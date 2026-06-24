@@ -2,7 +2,7 @@
 
 Interactive recreations of the tables from **Tom Tango, Mitchel Lichtman & Andrew
 Dolphin's _The Book: Playing the Percentages in Baseball_**, computed from real
-**Retrosheet** play-by-play data (1980–2025).
+**Retrosheet** play-by-play data (1910–2025).
 
 - **Live site:** https://the-book-recreated.vercel.app
 - **Hosting:** Vercel (project `the-book-recreated`, account `rexjensen`)
@@ -32,10 +32,13 @@ Tango_book_recreation/
 │   │   │   ├── Filters.jsx    ← the Seasons/League/Teams control panel
 │   │   │   └── reMatrix.js    ← shared RE-matrix aggregation (Table 1 + 2–4)
 │   │   ├── data/              ← JSON datasets copied from Database/out
-│   │   │   ├── re_dataset.json      (1.5 MB, imported eagerly)
-│   │   │   └── event_states.json    (5.2 MB, dynamically imported — /run-value + /state-run-value)
+│   │   │   ├── re_dataset.json      (3 MB, imported eagerly)
+│   │   │   └── eventStates.js       ← cached fetch() loader for the big asset
 │   │   ├── teams.js           ← Retrosheet team code → display name map
 │   │   └── styles.css
+│   ├── public/
+│   │   └── event_states.json  ← 26 MB, fetched at runtime (Tables 2–7); served
+│   │                            as a static asset, kept out of the JS bundle
 │   └── vercel.json            ← SPA rewrite so deep links work
 ├── Table1-RunExpectancy-by-BaseOutState/   ← reference screenshot/material only
 ├── Table2-RunsToEndOfInning-ByEvent/       ← reference screenshots/material only
@@ -58,7 +61,7 @@ reference material from the book and early reconstruction work.
 | **Table 5** | `/state-run-value` | Pick one event type (defaults to HR) and see its N, runs to end of inning, **Average**, **Starting RE**, and **Run Value** broken out across all 24 base/out states. The inverse cut of Tables 2–4: one event, all states (vs. one row per event, aggregated over states). |
 | **Table 6** | `/hr-run-value` | Run value of the HR by base/out state via the **RE-transition** method: `Run Value = Ending RE − Starting RE`, where Ending RE = the bases-empty (same outs) RE the HR leaves you in **plus** the runs scored on the play (`#runners + 1`). Contrasts with the **Original** column (Table 5's empirical runs-to-end-of-inning run value). Deterministic for the HR, so it sidesteps small-sample noise — needs only the Table 1 matrix + HR counts. |
 
-Seasons loaded: **1980–2025** (46 seasons, ~8.1M events). Every page recomputes
+Seasons loaded: **1910–2025** (116 seasons, ~14.5M plate appearances). Every page recomputes
 live for whatever **Seasons / League / Teams** you select in the sidebar, and the
 selection persists as you move between tables.
 
@@ -90,7 +93,8 @@ Open `Database/retrosheet_pipeline.ipynb`, confirm `START_YEAR` / `END_YEAR`,
 set `RUN_PIPELINE = True` in the final cell, and run the notebook. It
 downloads/extracts each season into `raw/<year>/`, converts the events to
 `out/events_<year>.csv` with `cwevent`, computes the additive JSON datasets, and
-copies the site-facing JSON into `site/src/data/`. Re-running is safe — existing
+copies the site-facing JSON into the site (`re_dataset.json` → `site/src/data/`,
+`event_states.json` → `site/public/`). Re-running is safe — existing
 downloads are reused unless `FORCE_DOWNLOAD = True`. To add a year, widen the
 range in the notebook.
 
@@ -98,10 +102,10 @@ For quick exploration, leave `RUN_PIPELINE = False` and run all cells. The
 notebook loads the existing JSON in `Database/out/` and renders walkthrough
 tables/charts under the relevant cells.
 
-> **Disk note:** the intermediate `out/events_*.csv` files are large (~550 MB for
-> 46 seasons) and are deleted after a build to save space. They are fully
+> **Disk note:** the intermediate `out/events_*.csv` files are large (~900 MB for
+> 116 seasons) and are deleted after a build to save space. They are fully
 > regenerable by re-running the notebook (which re-runs `cwevent` over `raw/`).
-> `raw/` is ~500 MB; delete it to reclaim space — the notebook re-downloads it.
+> `raw/` is ~900 MB; delete it to reclaim space — the notebook re-downloads it.
 
 ### How run expectancy is computed
 The standard Retrosheet recipe (Marchi & Albert, _Analyzing Baseball Data with R_):
@@ -164,18 +168,21 @@ npm run dev                            # http://localhost:5173 (or as assigned)
 
 ### Add a new table
 1. Compute its data in `Database/retrosheet_pipeline.ipynb` → JSON in
-   `Database/out/`, then copy any site-consumed dataset into `site/src/data/`.
+   `Database/out/`, then copy any site-consumed dataset into `site/src/data/`
+   (or `site/public/` if it's large — see below).
 2. Create `site/src/tables/TableN.jsx` — a component taking `{ sel }`, using
    `computeREMatrix(sel)` and/or `matchesSelection(g, sel)` to aggregate.
-   Dynamically `import()` any large (>1 MB) dataset so it only loads on that page.
+   Put any large (>1 MB) dataset in `site/public/` and `fetch()` it at runtime
+   (see `site/src/data/eventStates.js`) so Vite never bundles it — importing a
+   multi-MB JSON as a module blows the build heap and ships a giant JS chunk.
 3. Add one entry to `site/src/tables/registry.js` (`{ path, num, title, blurb,
    Component }`). It appears in the nav and on the home page automatically.
 4. `npm run build` to check, then deploy.
 
 ### After regenerating data, refresh the site copies
-The notebook does this automatically when `COPY_TO_SITE = True` by copying
-`Database/out/re_dataset.json` and `Database/out/event_states.json` into
-`site/src/data/`.
+The notebook does this automatically when `COPY_TO_SITE = True`: it copies
+`Database/out/re_dataset.json` into `site/src/data/` and the large
+`Database/out/event_states.json` into `site/public/` (fetched at runtime).
 
 ### Data-code convention
 Keep non-frontend pipeline logic in `Database/retrosheet_pipeline.ipynb`. Do not

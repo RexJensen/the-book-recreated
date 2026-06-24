@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { loadEventStates } from '../data/eventStates.js'
 import { BASE_ORDER, OUTS, computeREMatrix } from '../components/reMatrix.js'
 import { matchesSelection } from '../components/selection.js'
 
@@ -17,7 +18,7 @@ export default function Table5({ sel }) {
 
   useEffect(() => {
     let live = true
-    import('../data/event_states.json').then((m) => live && setStateData(m.default))
+    loadEventStates().then((d) => live && setStateData(d))
     return () => {
       live = false
     }
