@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { BASE_ORDER, OUTS, reMeta, computeREMatrix } from '../components/reMatrix.js'
 
 const onFirst = (b) => b & 1
@@ -75,6 +76,15 @@ export default function Table1({ sel }) {
             </tbody>
           </table>
           <p className="hint">Hover any cell to see its sample size.</p>
+
+          <Link to="/re24" className="tool-callout">
+            <span className="tool-callout-eyebrow">Interactive tool</span>
+            <strong>Open the 24-state decision console →</strong>
+            <span className="tool-callout-desc">
+              Put runners on a field, set the outs, and test whether a steal pays off or what a bunt
+              costs — all driven by these same run-expectancy numbers, live for your current filters.
+            </span>
+          </Link>
         </>
       ) : (
         <div className="empty">Select at least one team to compute run expectancy.</div>

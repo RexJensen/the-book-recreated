@@ -241,6 +241,20 @@ tr.extra td { background: #faf7ee; color: #8a8472; }
   font-family: system-ui, sans-serif;
 }
 
+/* ===================== tool callout (link to /re24) ===================== */
+.tool-callout {
+  display: block; text-decoration: none; color: inherit; margin-top: 26px;
+  border: 1px solid var(--line); border-left: 4px solid var(--accent);
+  border-radius: 10px; padding: 16px 18px; background: var(--panel); transition: all 0.14s;
+}
+.tool-callout:hover { border-color: var(--accent); box-shadow: 0 6px 22px rgba(31, 111, 60, 0.12); transform: translateY(-2px); }
+.tool-callout-eyebrow {
+  display: block; font-family: system-ui, sans-serif; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--accent); font-weight: 700;
+}
+.tool-callout strong { display: block; font-size: 18px; margin: 5px 0 6px; line-height: 1.2; }
+.tool-callout-desc { display: block; font-family: system-ui, sans-serif; font-size: 14px; color: var(--muted); line-height: 1.5; }
+
 /* ===================== method + home ===================== */
 .method { margin-top: 26px; font-family: system-ui, -apple-system, sans-serif; font-size: 13px; color: #444; line-height: 1.5; }
 .method summary { cursor: pointer; color: var(--accent); font-weight: 600; }
