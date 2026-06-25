@@ -4,6 +4,7 @@ import { buildTeams, useSelection } from './components/selection.js'
 import Filters from './components/Filters.jsx'
 import Home from './Home.jsx'
 import RE24Console from './tables/RE24Console.jsx'
+import WEConsole from './tables/WEConsole.jsx'
 import { TABLES } from './tables/registry.js'
 
 const SEASONS = reData.meta.seasons
@@ -55,6 +56,7 @@ export default function App() {
           {/* A "fun tool", not a book-table recreation — wired in (shares the
               sidebar + filters) but intentionally not listed in the nav. */}
           <Route path="/re24" element={<RE24Console sel={sel} />} />
+          <Route path="/we" element={<WEConsole sel={sel} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

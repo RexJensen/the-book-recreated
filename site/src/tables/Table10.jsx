@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { loadEventStates } from '../data/eventStates.js'
 import { BASE_ORDER, OUTS } from '../components/reMatrix.js'
 import {
@@ -256,6 +257,16 @@ export default function Table10({ sel }) {
             Score is from the home team's point of view. Values are home-team win expectancy.
             Impossible book states, such as home leading in the bottom of the ninth, are blanked.
           </p>
+
+          <Link to="/we" className="tool-callout">
+            <span className="tool-callout-eyebrow">Interactive tool</span>
+            <strong>Open the win expectancy console →</strong>
+            <span className="tool-callout-desc">
+              Set the inning, score, runners and outs on a scoreboard-style interface, then see
+              the win impact of the next run, walk or out — all driven by this same Table&nbsp;10
+              model for your current filters.
+            </span>
+          </Link>
         </>
       ) : (
         <div className="empty">Select at least one team to compute the table.</div>
