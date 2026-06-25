@@ -3,6 +3,9 @@ import Table2to4 from './Table2to4.jsx'
 import Table5 from './Table5.jsx'
 import Table6 from './Table6.jsx'
 import Table7 from './Table7.jsx'
+import Table8 from './Table8.jsx'
+import Table9 from './Table9.jsx'
+import Table10 from './Table10.jsx'
 
 // Add a new table here and it appears in the nav + on the home page automatically.
 export const TABLES = [
@@ -45,5 +48,29 @@ export const TABLES = [
     blurb:
       "The Table 6 transition method applied to every event type, weighted by each event's observed start-to-end states to produce a single run value per event.",
     Component: Table7,
+  },
+  {
+    path: 'table-8',
+    num: '8',
+    title: 'Scoring Distribution, by Base/Out State',
+    blurb:
+      'A Markov-chain projection from each base/out state: expected runs plus the probabilities of scoring exactly 0, 1, 2, 3, 4, or 5+ runs before the inning ends.',
+    Component: Table8,
+  },
+  {
+    path: 'table-9',
+    num: '9',
+    title: 'Scoring Distribution, Tuned Run Environment',
+    blurb:
+      "The Table 8 Markov chain with a runs/game dial. Recreate the book's 3.2 runs/game example, or choose a different run environment and watch the scoring distribution shift.",
+    Component: Table9,
+  },
+  {
+    path: 'table-10',
+    num: '10',
+    title: 'Win Expectancy, by Game State',
+    blurb:
+      'The Markov run model extended across the rest of the game: choose inning, half-inning, score, and base/out state to estimate the home team win expectancy.',
+    Component: Table10,
   },
 ]
