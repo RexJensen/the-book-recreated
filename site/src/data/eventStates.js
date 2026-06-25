@@ -1,8 +1,8 @@
-// Loads the large event-states dataset (Tables 2-7) as a static asset served
+// Loads the large event-states dataset (Tables 2-11) as a static asset served
 // from /public, instead of importing it as a module. At ~26 MB across all
 // Retrosheet seasons (1910-2025), letting Vite transform it into a JS module
 // blows the build's heap and ships a giant JS chunk; fetching the raw JSON
-// sidesteps both. The promise is cached so moving between Tables 2-7 only
+// sidesteps both. The promise is cached so moving between table pages only
 // fetches once.
 let promise
 

@@ -6,6 +6,7 @@ import Table7 from './Table7.jsx'
 import Table8 from './Table8.jsx'
 import Table9 from './Table9.jsx'
 import Table10 from './Table10.jsx'
+import Table11 from './Table11.jsx'
 
 // Add a new table here and it appears in the nav + on the home page automatically.
 export const TABLES = [
@@ -72,5 +73,13 @@ export const TABLES = [
     blurb:
       'The Markov run model extended across the rest of the game: choose inning, half-inning, score, and base/out state to estimate the home team win expectancy.',
     Component: Table10,
+  },
+  {
+    path: 'table-11',
+    num: '11',
+    title: 'Win Values By Event',
+    blurb:
+      "The win-expectancy version of event value: compare the batting team's chance to win before and after each event, then pair that with its run value and runs-per-win.",
+    Component: Table11,
   },
 ]

@@ -226,6 +226,10 @@ table.t7 td, table.t7 th { padding: 7px 9px; font-size: 14px; }
 table.t8 td, table.t8 th { padding: 7px 8px; font-size: 14px; }
 table.t8 td.prob { min-width: 64px; }
 table.t10 td, table.t10 th { padding: 7px 9px; font-size: 14px; }
+table.t11 { min-width: 820px; }
+table.t11 td, table.t11 th { padding: 7px 8px; font-size: 13px; }
+.table-scroll { width: 100%; overflow-x: auto; }
+.table-scroll table { margin-bottom: 0; }
 
 /* ===================== Table 5 (event by base/out state) ===================== */
 table.t5 th.b, table.t6 th.b, table.t8 th.b, table.t10 th.b { text-align: center; }
