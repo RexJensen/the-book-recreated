@@ -9,7 +9,7 @@ import {
   NOT_IN_BOOK,
   signed,
 } from './eventTransitions.js'
-import { computeWinExpectancyModel, makeBookSelection } from './winExpectancy.js'
+import { computeWinExpectancyModel } from './winExpectancy.js'
 
 const BOOK_TABLE_11 = {
   HR: { count: 21734, start: 0.514, end: 0.638, win: 0.123, runs: 1.397, runsPerWin: 11.3 },
@@ -46,8 +46,6 @@ const COLS = [
 
 const fmt = (value) => (value == null ? '—' : value.toFixed(3))
 const fmtRunsPerWin = (value) => (value == null || !Number.isFinite(value) ? '—' : value.toFixed(1))
-const fmtCountDiff = (value) => (value == null ? '—' : `${value >= 0 ? '+' : '−'}${Math.abs(value).toLocaleString()}`)
-
 function parseState(stateText) {
   if (stateText === 'W') return { terminal: true, homeWin: 1 }
   if (stateText === 'L') return { terminal: true, homeWin: 0 }
@@ -182,17 +180,6 @@ export default function Table11({ sel }) {
     return decodeWinRows(winData, sel, labels, model, runRowsByCat)
   }, [stateData, winData, labels, sel])
 
-  const bookRows = useMemo(() => {
-    if (!stateData || !winData) return null
-    const bookSel = makeBookSelection(stateData)
-    const { matrix } = computeREMatrix(bookSel)
-    const runRows = computeTransitionEventRows(stateData, bookSel, matrix, labels)
-    const runRowsByCat = Object.fromEntries(runRows.map((row) => [row.cat, row]))
-    const model = computeWinExpectancyModel(stateData, bookSel)
-    if (!model.totalTransitions) return []
-    return decodeWinRows(winData, bookSel, labels, model, runRowsByCat).filter((row) => BOOK_TABLE_11[row.cat])
-  }, [stateData, winData, labels])
-
   const sorted = useMemo(() => {
     if (!rows) return []
     const col = COLS.find((c) => c.key === sort.key)
@@ -208,19 +195,8 @@ export default function Table11({ sel }) {
     })
   }, [rows, sort, showExtra])
 
-  const bookCompare = useMemo(() => {
-    if (!bookRows) return null
-    const ordered = Object.fromEntries(bookRows.map((row) => [row.cat, row]))
-    const anchors = BOOK_EVENT_ORDER.map((cat) => ordered[cat]).filter(Boolean)
-    const meanAbsGap =
-      anchors.length > 0
-        ? anchors.reduce((sum, row) => sum + Math.abs(row.bookDiff ?? 0), 0) / anchors.length
-        : null
-    return { rows: anchors, meanAbsGap }
-  }, [bookRows])
-
   const totalN = sorted.reduce((sum, row) => sum + row.count, 0)
-  const loading = rows == null || bookCompare == null
+  const loading = rows == null
 
   const clickSort = (col) =>
     setSort((prev) =>
@@ -300,42 +276,6 @@ export default function Table11({ sel }) {
         </>
       ) : (
         <div className="empty">Select at least one team to compute the table.</div>
-      )}
-
-      {bookCompare && (
-        <details className="book-compare" open>
-          <summary>Book comparison: 1999–2002</summary>
-          <p>
-            The book-era selection uses all teams from 1999–2002. Mean absolute gap in the Wins
-            column: <strong>{bookCompare.meanAbsGap == null ? '—' : bookCompare.meanAbsGap.toFixed(3)}</strong>.
-            Count gaps mostly reflect Retrosheet scoring revisions and this site's consistent bunt/error
-            category rules.
-          </p>
-          <table className="mini-compare t11-compare">
-            <thead>
-              <tr>
-                <th>Event</th>
-                <th className="num">N Δ</th>
-                <th className="num">Book Wins</th>
-                <th className="num">Model Wins</th>
-                <th className="num">Diff</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookCompare.rows.map((row) => (
-                <tr key={row.cat}>
-                  <td>{row.label}</td>
-                  <td className="num">{fmtCountDiff(row.countDiff)}</td>
-                  <td className="num">{fmt(row.book?.win)}</td>
-                  <td className="num">{fmt(row.winValue)}</td>
-                  <td className={`num delta ${row.bookDiff == null ? '' : row.bookDiff >= 0 ? 'pos' : 'neg'}`}>
-                    {signed(row.bookDiff)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </details>
       )}
 
       <details className="method">

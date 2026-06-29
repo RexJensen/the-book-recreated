@@ -3,11 +3,9 @@ import { Link } from 'react-router-dom'
 import { loadEventStates } from '../data/eventStates.js'
 import { BASE_ORDER, OUTS } from '../components/reMatrix.js'
 import {
-  BOOK_TABLE_10_ANCHORS,
   SCORE_DIFFS,
   computeWinExpectancyModel,
   isImpossibleBookState,
-  makeBookSelection,
   scoreDiffLabel,
 } from './winExpectancy.js'
 
@@ -57,11 +55,6 @@ export default function Table10({ sel }) {
     return computeWinExpectancyModel(stateData, sel)
   }, [stateData, sel])
 
-  const bookModel = useMemo(() => {
-    if (!stateData) return null
-    return computeWinExpectancyModel(stateData, makeBookSelection(stateData))
-  }, [stateData])
-
   const rows = useMemo(() => {
     if (!model) return null
     return BASE_ORDER.flatMap((base) =>
@@ -88,23 +81,6 @@ export default function Table10({ sel }) {
         : model.winProbability({ inning, half, diff: scoreDiff, base: selectedBase, outs: selectedOuts }),
     }))
   }, [model, inning, half, selectedBase, selectedOuts])
-
-  const bookAnchors = useMemo(() => {
-    if (!bookModel) return []
-    return BOOK_TABLE_10_ANCHORS.map((anchor) => {
-      const modelValue = bookModel.winProbability(anchor)
-      return {
-        ...anchor,
-        model: modelValue,
-        diff: modelValue == null ? null : modelValue - anchor.book,
-      }
-    })
-  }, [bookModel])
-
-  const meanAbsGap =
-    bookAnchors.length && bookAnchors.every((anchor) => anchor.diff != null)
-      ? bookAnchors.reduce((sum, anchor) => sum + Math.abs(anchor.diff), 0) / bookAnchors.length
-      : null
 
   return (
     <>
@@ -221,37 +197,6 @@ export default function Table10({ sel }) {
               ))}
             </tbody>
           </table>
-
-          <details className="book-compare" open>
-            <summary>Book comparison anchors</summary>
-            <p>
-              Using 1999–2002, all teams, compared against representative values read from the
-              Table&nbsp;10 screenshots. Mean absolute gap:{' '}
-              <strong>{meanAbsGap == null ? '—' : meanAbsGap.toFixed(3)}</strong>.
-            </p>
-            <table className="mini-compare">
-              <thead>
-                <tr>
-                  <th>State</th>
-                  <th className="num">Book</th>
-                  <th className="num">Model</th>
-                  <th className="num">Diff</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bookAnchors.map((anchor) => (
-                  <tr key={anchor.label}>
-                    <td>{anchor.label}</td>
-                    <td className="num">{anchor.book.toFixed(3)}</td>
-                    <td className="num">{fixed(anchor.model)}</td>
-                    <td className={`num delta ${anchor.diff == null ? '' : anchor.diff >= 0 ? 'pos' : 'neg'}`}>
-                      {anchor.diff == null ? '—' : `${anchor.diff >= 0 ? '+' : '−'}${Math.abs(anchor.diff).toFixed(3)}`}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </details>
 
           <p className="hint">
             Score is from the home team's point of view. Values are home-team win expectancy.

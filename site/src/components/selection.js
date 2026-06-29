@@ -28,7 +28,10 @@ export function buildTeams(groups) {
 // Shared Seasons / League / Teams selection state, used by every table so the
 // chosen filter carries across the whole site.
 export function useSelection(seasonList, teamList) {
-  const [seasons, setSeasons] = useState(() => new Set(seasonList))
+  const [seasons, setSeasons] = useState(() => {
+    const latestSeason = seasonList[seasonList.length - 1]
+    return new Set(seasonList.filter((s) => s >= latestSeason - 4 && s <= latestSeason))
+  })
   const [league, setLeague] = useState('ALL') // ALL | AL | NL
   const [teams, setTeams] = useState(() => new Set(listCodes(teamList)))
 
